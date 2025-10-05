@@ -1,0 +1,113 @@
+{% extends 'lead_management/base_dashboard.html' %}
+{% block title %}My Connections{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{% if messages %}
+<script>
+    {% for message in messages %}
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: "{{ message|escapejs }}",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+    });
+    {% endfor %}
+</script>
+{% endif %}
+
+<h2 class="text-center mb-4">📇 My Connections</h2>
+
+<div class="text-center mb-3">
+    <input type="text" id="search-box" placeholder="Search by name or status"
+        class="form-control" style="max-width: 400px; margin: 0 auto;">
+</div>
+
+<table class="table table-bordered table-hover bg-white shadow-sm rounded">
+    <thead class="table-primary">
+        <tr>
+            <th>Full Name</th>
+            <th>LinkedIn</th> <!-- ✅ Added column -->
+            <th>LinkedIn Email</th>
+            <th>Outreach Email</th>
+            <th>Status</th>
+            <th>Date Connected</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="connection-table">
+        {% for conn in connections %}
+        <tr>
+            <td>{{ conn.full_name }}</td>
+
+            <!-- ✅ Show LinkedIn URL via OutreachLead -->
+            <td>
+                {% if conn.outreach_lead.linkedin_url %}
+                    <a href="{{ conn.outreach_lead.linkedin_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">View</a>
+                {% else %}
+                    <span class="text-muted">—</span>
+                {% endif %}
+            </td>
+
+            <td>{{ conn.linkedin_email|default:"—" }}</td>
+            <td>{{ conn.outreach_email|default:"—" }}</td>
+            <td>
+                <form method="POST" action="{% url 'update_connection_status' conn.id %}">
+                    {% csrf_token %}
+                    <div class="d-flex align-items-center gap-2">
+                        <select name="status" class="form-select form-select-sm fw-semibold"
+                            style="width: auto;
+                                {% if conn.status == 'interested' %}color: #28a745;
+                                {% elif conn.status == 'not_interested' %}color: #dc3545;
+                                {% elif conn.status == 'F1' %}color: #ffc107;
+                                {% elif conn.status == 'F2' %}color: #fd7e14;
+                                {% elif conn.status == 'cold_lead' %}color: #6c757d;
+                                {% endif %}">
+                            {% for value, label in status_choices %}
+                            <option value="{{ value }}"
+                                {% if conn.status == value %}selected{% endif %}
+                                style="{% if value == 'interested' %}color: #28a745;
+                                       {% elif value == 'not_interested' %}color: #dc3545;
+                                       {% elif value == 'F1' %}color: #ffc107;
+                                       {% elif value == 'F2' %}color: #fd7e14;
+                                       {% elif value == 'cold_lead' %}color: #6c757d;
+                                       {% endif %}">
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+                    </div>
+                </form>
+            </td>
+            <td>{{ conn.date_connected|date:"M d, Y" }}</td>
+            <td class="text-center">
+                <a href="{% url 'view_connection' conn.id %}" class="me-2 text-decoration-none" title="View">👁️</a>
+                <a href="#" class="me-2 text-decoration-none" title="Comments">🗨️</a>
+                <a href="{% url 'edit_connection' conn.id %}" class="text-decoration-none" title="Edit">✏️</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7" class="text-center py-4">No connections found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    document.getElementById('search-box').addEventListener('keyup', function () {
+        const query = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#connection-table tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

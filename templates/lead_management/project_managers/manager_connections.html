@@ -1,0 +1,142 @@
+{% extends 'lead_management/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Team Connections{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<h2 class="text-center mb-4">📇 Team's Connections</h2>
+
+<div class="text-center mb-3">
+    <input type="text" id="search-box" placeholder="Search by name, editor, or status"
+        class="form-control" style="max-width: 400px; margin: 0 auto;">
+</div>
+
+<table class="table table-bordered table-hover bg-white shadow-sm rounded">
+    <thead class="table-primary text-center align-middle">
+        <tr>
+            <th>Full Name</th>
+            <th>LinkedIn</th>
+            <th>Status</th>
+            <th>Assigned Editor</th>
+            <th>Community Builder</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="connection-table">
+        {% for conn in connections %}
+        <tr>
+            <td>{{ conn.full_name }}</td>
+            <td>
+                {% if conn.outreach_lead.linkedin_url %}
+                    <a href="{{ conn.outreach_lead.linkedin_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                        View Profile
+                    </a>
+                {% else %}
+                    <span class="text-muted">—</span>
+                {% endif %}
+            </td>
+            <td>
+                <span class="badge bg-info text-dark">{{ conn.status }}</span>
+            </td>
+            <td>
+                <div class="d-flex align-items-center gap-2">
+                    <select class="form-select form-select-sm fw-semibold editor-select"
+                            style="width: auto;" data-conn-id="{{ conn.id }}">
+                        <option value="">-- Select Editor --</option>
+                        {% for editor in editors %}
+                            <option value="{{ editor.id }}"
+                                {% if conn.assigned_editor and conn.assigned_editor.id == editor.id %}selected{% endif %}>
+                                {{ editor.get_full_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-sm btn-outline-primary assign-btn" data-conn-id="{{ conn.id }}">
+                        Save
+                    </button>
+                </div>
+            </td>
+            <td>{{ conn.added_by.get_full_name|default:conn.added_by.username }}</td>
+            <td class="text-center">
+                <a href="{% url 'manager_view_connection' conn.id %}" class="me-2 text-decoration-none" title="View">👁️</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" class="text-center py-4">No connections found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- 🔎 Search Filter -->
+<script>
+document.getElementById('search-box').addEventListener('keyup', function () {
+    const query = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#connection-table tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(query) ? '' : 'none';
+    });
+});
+</script>
+
+<!-- 🔁 AJAX Editor Assignment -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const buttons = document.querySelectorAll('.assign-btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', function () {
+            const connId = this.dataset.connId;
+            const editorSelect = document.querySelector(`.editor-select[data-conn-id="${connId}"]`);
+            const editorId = editorSelect.value;
+
+            if (!editorId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Please select an editor.',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                return;
+            }
+
+            fetch('{% url "assign-editor-ajax" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ connection_id: connId, editor_id: editorId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Editor assigned!',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: data.error || 'Something went wrong.',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

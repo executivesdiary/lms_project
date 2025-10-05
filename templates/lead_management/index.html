@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Executives Diary LMS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+        .section-title {
+            font-weight: 600;
+            border-bottom: 2px solid #0d6efd;
+            display: inline-block;
+            margin-bottom: 1rem;
+            padding-bottom: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-light bg-white border-bottom px-4 py-2">
+        <a class="navbar-brand fw-bold" href="#">Executives Diary LMS</a>
+        <a href="{% url 'login' %}" class="btn btn-outline-primary">Login</a>
+    </nav>
+
+    <div class="container py-5">
+        <!-- Intro -->
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold">Lead Management System</h1>
+            <p class="text-muted fs-5">
+                A custom-built Django application powering outreach and editorial workflow at <strong>Executives Diary</strong>.
+            </p>
+            <p class="text-muted fst-italic">Built for Community Builders, Editors, Project Managers, and Super Admins.</p>
+        </div>
+
+        <!-- What We’ve Built -->
+        <div class="mb-5">
+            <h3 class="section-title">✅ What We’ve Built So Far</h3>
+            <ul class="list-group list-group-flush fs-6">
+                <li class="list-group-item">🔐 Multi-role user system (Super Admin, Project Manager, Community Builder, Editor)</li>
+                <li class="list-group-item">📬 Community Builders can add leads, convert them into connections, and update statuses</li>
+                <li class="list-group-item">📈 Builder dashboards show analytics and outreach progress (past 30 days)</li>
+                <li class="list-group-item">📎 Screenshot uploads and comment threads on each connection</li>
+                <li class="list-group-item">🧠 Project Managers can assign Editors and monitor builder activity</li>
+                <li class="list-group-item">✍️ Editors view assigned leads and track biography work</li>
+                <li class="list-group-item">📊 Analytics and pie charts for status insights</li>
+                <li class="list-group-item">📌 Threaded AJAX-powered comment system between team members</li>
+            </ul>
+        </div>
+
+        <!-- Upcoming Features -->
+        <div class="mb-5">
+            <h3 class="section-title">🚀 Upcoming Features</h3>
+            <ul class="list-group list-group-flush fs-6">
+                <li class="list-group-item">📥 LinkedIn CSV import to auto-populate leads</li>
+                <li class="list-group-item">🧹 AJAX-powered lead cleanup and filtering</li>
+                <li class="list-group-item">🤖 Integrated biography writing assistant using GPT</li>
+                <li class="list-group-item">📨 Email sequence automation for cold leads</li>
+                <li class="list-group-item">📁 Export connections as Excel/PDF reports</li>
+                <li class="list-group-item">💬 Real-time chat between editors and builders (optional future)</li>
+                <li class="list-group-item">🧪 Role-based testing dashboard with demo data for advisors</li>
+            </ul>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-5 text-muted small">
+            <p>&copy; {{ now|date:"Y" }} Executives Diary Inc. All rights reserved.</p>
+            <p class="fst-italic">This system is currently in beta and developed in-house by our founder and team.</p>
+        </div>
+    </div>
+</body>
+</html>

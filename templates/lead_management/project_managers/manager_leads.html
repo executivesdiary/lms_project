@@ -1,0 +1,70 @@
+{% extends 'lead_management/project_managers/base_manager_dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<h2>Interested Leads from Your Builders</h2>
+
+<table class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Full Name</th>
+            <th>LinkedIn</th>
+            <th>Community Builder</th>
+            <th>Assigned Editor</th>
+            <th>Assign Editor</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for lead in leads %}
+        <tr id="lead-row-{{ lead.id }}">
+            <td>{{ lead.full_name }}</td>
+            <td><a href="{{ lead.outreach_lead.linkedin_url }}" target="_blank">View</a></td>
+            <td>{{ lead.added_by.username }}</td>
+            <td id="editor-name-{{ lead.id }}">
+                {{ lead.outreach_lead.assigned_editor.username if lead.outreach_lead.assigned_editor else "Unassigned" }}
+            </td>
+            <td>
+                <select class="form-select form-select-sm d-inline w-auto editor-select" data-lead-id="{{ lead.id }}">
+                    <option value="">-- Choose Editor --</option>
+                    {% for editor in editors %}
+                        <option value="{{ editor.id }}">{{ editor.username }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+                <a href="{% url 'view_connection' lead.id %}" class="btn btn-sm btn-outline-secondary">👁 View</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function(){
+    $('.editor-select').change(function(){
+        const leadId = $(this).data('lead-id');
+        const editorId = $(this).val();
+
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'assign_editor_ajax' %}",
+            data: {
+                'lead_id': leadId,
+                'editor_id': editorId,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#editor-name-' + leadId).text(response.editor_name);
+                }
+            },
+            error: function(xhr) {
+                alert("Assignment failed: " + xhr.responseJSON.error);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

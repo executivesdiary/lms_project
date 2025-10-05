@@ -1,0 +1,213 @@
+<!-- 
+    Template: view_connection.html (Editor)
+    Purpose: Used by editors to view full lead profile, screenshots, and add comments.
+-->
+
+{% extends 'lead_management/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}View Connection{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow-lg border-0">
+        <div class="card-body">
+
+            <!-- ✅ Profile Header -->
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center">
+                    {% if connection.profile_picture %}
+                        <img src="{{ connection.profile_picture.url }}" class="img-fluid rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                    {% else %}
+                        <img src="{% static 'images/default-profile.png' %}" class="img-fluid rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                    {% endif %}
+                </div>
+                <div class="col-md-9">
+                    <h2 class="fw-bold mb-1">{{ connection.full_name }}</h2>
+                    <p class="text-muted mb-2">{{ connection.location }}</p>
+                    <span class="badge bg-primary">{{ connection.get_status_display }}</span>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- ✅ Detail Fields -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-muted">LinkedIn Email</h6>
+                    <p>{{ connection.linkedin_email|default:"—" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-muted">Outreach Email</h6>
+                    <p>{{ connection.outreach_email|default:"—" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-muted">Community Builder</h6>
+                    <p>{{ connection.added_by.get_full_name|default:connection.added_by.username }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-muted">Assigned Editor</h6>
+                    <p>{{ connection.assigned_editor.get_full_name|default:connection.assigned_editor.username }}</p>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <h6 class="text-uppercase text-muted">Date Connected</h6>
+                <p>{{ connection.date_connected|date:"F j, Y" }}</p>
+            </div>
+
+            {% if connection.profile_pdf %}
+            <div class="mb-3">
+                <h6 class="text-uppercase text-muted">Profile PDF</h6>
+                <a href="{{ connection.profile_pdf.url }}" class="btn btn-outline-primary btn-sm" target="_blank">View PDF</a>
+            </div>
+            {% endif %}
+
+            <!-- ✅ Screenshot Gallery -->
+            <div class="mb-5">
+                <h5 class="fw-bold">Chat Screenshots</h5>
+                {% if screenshots %}
+                <div class="row g-3">
+                    {% for ss in screenshots %}
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <img src="{{ ss.image.url }}" class="img-fluid rounded shadow-sm zoomable" style="object-fit: cover; height: 150px; cursor: pointer;" data-index="{{ forloop.counter0 }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No screenshots uploaded yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- ✅ Comments -->
+            <h5 class="fw-bold mb-3">💬 Comments</h5>
+            <div id="comments-thread">
+                {% if comments %}
+                    {% for comment in comments %}
+                    <div class="border rounded p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong>
+                                {{ comment.author.get_full_name|default:comment.author.username }}
+                                {% if comment.author.role == 'project_manager' %}<span class="badge bg-info text-dark ms-1">PM</span>{% endif %}
+                                {% if comment.author.role == 'community_builder' %}<span class="badge bg-success text-white ms-1">Builder</span>{% endif %}
+                                {% if comment.author.role == 'editor' %}<span class="badge bg-secondary text-white ms-1">Editor</span>{% endif %}
+                            </strong>
+                            <small class="text-muted">{{ comment.timestamp|date:"M d, Y h:i A" }}</small>
+                        </div>
+                        <div class="mb-2">{{ comment.comment }}</div>
+                        <button class="btn btn-sm btn-outline-secondary reply-btn" data-id="{{ comment.id }}">Reply</button>
+
+                        {% if comment.thread_replies %}
+                            {% for reply in comment.thread_replies %}
+                            <div class="border rounded p-3 my-2 ms-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong>
+                                        {{ reply.author.get_full_name|default:reply.author.username }}
+                                        {% if reply.author.role == 'project_manager' %}<span class="badge bg-info text-dark ms-1">PM</span>{% endif %}
+                                        {% if reply.author.role == 'community_builder' %}<span class="badge bg-success text-white ms-1">Builder</span>{% endif %}
+                                        {% if reply.author.role == 'editor' %}<span class="badge bg-secondary text-white ms-1">Editor</span>{% endif %}
+                                    </strong>
+                                    <small class="text-muted">{{ reply.timestamp|date:"M d, Y h:i A" }}</small>
+                                </div>
+                                <div class="mb-2">{{ reply.comment }}</div>
+                                <button class="btn btn-sm btn-outline-secondary reply-btn" data-id="{{ reply.id }}">Reply</button>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No comments yet. Be the first to share an update.</p>
+                {% endif %}
+            </div>
+
+            <!-- ✅ Add Comment -->
+            <div id="reply-form-container" class="mt-4">
+                <h6 class="fw-semibold">Add a Comment</h6>
+                <form id="reply-form" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="parent_id" id="parent-id">
+                    <textarea name="comment" class="form-control mb-2" placeholder="Write your comment..." required></textarea>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-primary">Post Comment</button>
+                        <button type="button" class="btn btn-sm btn-secondary d-none" id="cancel-reply" onclick="cancelReply()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ✅ Fullscreen Viewer -->
+<div id="fullscreen-viewer" class="d-none position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-90 d-flex justify-content-center align-items-center flex-column" style="z-index: 1050;">
+    <div class="position-absolute top-0 end-0 p-3">
+        <button class="btn btn-light btn-sm" onclick="closeViewer()">✖</button>
+    </div>
+    <div class="d-flex align-items-center w-100 justify-content-between px-4">
+        <button class="btn btn-light" onclick="navigateScreenshot(-1)">←</button>
+        <img id="viewer-image" src="" class="img-fluid rounded shadow" style="max-height: 90vh;">
+        <button class="btn btn-light" onclick="navigateScreenshot(1)">→</button>
+    </div>
+</div>
+
+<!-- ✅ Script Logic -->
+<script>
+    const screenshots = Array.from(document.querySelectorAll('.zoomable'));
+    let currentIndex = 0;
+    screenshots.forEach((img, index) => {
+        img.addEventListener('click', () => {
+            currentIndex = index;
+            document.getElementById('viewer-image').src = img.src;
+            document.getElementById('fullscreen-viewer').classList.remove('d-none');
+        });
+    });
+    function closeViewer() {
+        document.getElementById('fullscreen-viewer').classList.add('d-none');
+    }
+    function navigateScreenshot(direction) {
+        currentIndex = (currentIndex + direction + screenshots.length) % screenshots.length;
+        document.getElementById('viewer-image').src = screenshots[currentIndex].src;
+    }
+
+    document.getElementById('reply-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const form = this;
+        const data = new FormData(form);
+        const url = "{% url 'add_comment' connection.id %}";
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': data.get('csrfmiddlewaretoken')
+            },
+            body: data
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert("Failed to post comment.");
+            }
+        })
+        .catch(() => alert("Error posting comment."));
+    });
+
+    function cancelReply() {
+        document.getElementById('parent-id').value = "";
+        document.getElementById('cancel-reply').classList.add('d-none');
+        document.querySelector('.container').appendChild(document.getElementById('reply-form-container'));
+        document.getElementById('reply-form').reset();
+    }
+
+    document.querySelectorAll('.reply-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const parentId = btn.dataset.id;
+            document.getElementById('parent-id').value = parentId;
+            document.getElementById('cancel-reply').classList.remove('d-none');
+            btn.closest('.border').appendChild(document.getElementById('reply-form-container'));
+        });
+    });
+</script>
+{% endblock %}

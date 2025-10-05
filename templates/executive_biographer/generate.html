@@ -1,0 +1,145 @@
+{% extends 'lead_management/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Generate Biography{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container my-5">
+    <h2 class="mb-4">Executive Biographer – Generate Biography</h2>
+
+    <!-- 🔹 Executive Info Preview -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body d-flex align-items-center">
+            {% if connection.profile_picture %}
+                <img src="{{ connection.profile_picture.url }}" class="rounded-circle me-3" width="80" height="80">
+            {% endif %}
+            <div>
+                <h5 class="mb-0">{{ connection.full_name }}</h5>
+                <small class="text-muted">{{ connection.location }}</small><br>
+                <a href="{{ connection.outreach_lead.linkedin_url }}" target="_blank">View LinkedIn Profile</a><br>
+                {% if connection.profile_pdf %}
+                    <a href="{{ connection.profile_pdf.url }}" target="_blank">View Resume (PDF)</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔹 Repeatable Content Blocks -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Content Inputs</h5>
+            <form id="biographyForm">
+                <div id="content-blocks">
+                    <div class="content-block border p-3 rounded mb-3">
+                        <input type="text" class="form-control mb-2" placeholder="Section Title (e.g., Early Career)">
+                        <textarea class="form-control" rows="3" placeholder="Paste or write content here..."></textarea>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-outline-primary" id="addBlockBtn">➕ Add More Content</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 🔹 Biography Style Selector -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Select Biography Style</h5>
+            <select class="form-select" id="bioStyle">
+                <option value="thematic">Thematic Opening – Bold Insight</option>
+                <option value="narrative">Narrative Style – Chronological Journey</option>
+                <option value="impact">Impact-Oriented – Achievements Focus</option>
+                <option value="custom">Custom (Let me decide)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 🔹 Generate Button -->
+    <div class="text-center my-4">
+        <button class="btn btn-success btn-lg" id="generateBtn">🚀 Generate with GPT</button>
+    </div>
+
+    <!-- 🔹 Generated Biography Preview -->
+    <div class="card shadow-sm mb-5" id="generatedOutputBox" style="display:none;">
+        <div class="card-body">
+            <h5 class="card-title">Biography Preview</h5>
+            <textarea id="generatedText" class="form-control" rows="15"></textarea>
+            <div class="d-flex justify-content-end mt-3">
+                <button class="btn btn-outline-secondary me-2" id="saveDraftBtn">💾 Save Draft</button>
+                <button class="btn btn-primary" id="markFinalBtn">✅ Mark as Final</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🔹 JavaScript for Repeatable Blocks -->
+<script>
+    document.getElementById("addBlockBtn").addEventListener("click", function() {
+        const newBlock = document.createElement("div");
+        newBlock.classList.add("content-block", "border", "p-3", "rounded", "mb-3");
+        newBlock.innerHTML = `
+            <input type="text" class="form-control mb-2" placeholder="Section Title">
+            <textarea class="form-control" rows="3" placeholder="Paste or write content here..."></textarea>
+        `;
+        document.getElementById("content-blocks").appendChild(newBlock);
+    });
+
+    document.getElementById("generateBtn").addEventListener("click", function() {
+        const style = document.getElementById("bioStyle").value;
+        const blocks = document.querySelectorAll(".content-block");
+        let prompt = `Write a biography in the "${style}" style.\n\nHere is the content provided:\n`;
+
+        blocks.forEach((block, index) => {
+            const title = block.querySelector("input").value;
+            const text = block.querySelector("textarea").value;
+            if (title || text) {
+                prompt += `\nSection: ${title || "Untitled"}\n${text}\n`;
+            }
+        });
+
+        prompt += "\nGO";
+
+        fetch("{% url 'generate_biography' connection.id %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+                prompt: prompt
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.generated_text) {
+                document.getElementById("generatedText").value = data.generated_text;
+                document.getElementById("generatedOutputBox").style.display = "block";
+            }
+        });
+    });
+
+    document.getElementById("saveDraftBtn").addEventListener("click", function() {
+        const prompt = document.getElementById("generatedText").value;
+        fetch("{% url 'generate_biography' connection.id %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+                content: prompt,
+                save_only: 1
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || "Saved!");
+        });
+    });
+
+    document.getElementById("markFinalBtn").addEventListener("click", function() {
+        alert("We'll add the 'mark as final' logic next!");
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project Manager Dashboard | Executives Diary</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .dashboard-header {
+            background: linear-gradient(90deg, #343a40, #6c757d);
+            color: white;
+            padding: 1rem;
+        }
+        .nav-link {
+            font-weight: 500;
+            color: #495057;
+        }
+        .nav-link:hover {
+            background-color: #dee2e6;
+            border-radius: 5px;
+        }
+        .sidebar {
+            background-color: white;
+            border-right: 1px solid #dee2e6;
+            height: 100vh;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">LMS</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="{% url 'manager_dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'add_editor' %}">Add Editor</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'add_builder' %}">Add Community Builder</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'assign_editor' %}">Assign Editor</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'view_team' %}">View Team</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'manager_connections' %}">Team Connections</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header text-center">
+        <h2>Welcome, Project Manager</h2>
+        <p>Manage your team of Editors & Community Builders</p>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar p-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'manager_dashboard' %}">📊 Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'add_editor' %}">👨‍💼 Add Editor</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'add_builder' %}">🧑‍🔧 Add Community Builder</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'assign_editor' %}">🗂 Assign Editor</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'view_team' %}">👥 View Team</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'manager_connections' %}">📝 Team Connections</a></li>
+                </ul>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                {% block content %}
+                <!-- Content goes here -->
+                {% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

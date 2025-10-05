@@ -1,0 +1,41 @@
+{% extends 'lead_management/base_dashboard.html' %}
+
+{% block title %}Community Builder Dashboard{% endblock %}
+
+{% block content %}
+<h2 style="text-align:center;">Welcome, {{ request.user.username }}</h2>
+
+{% if readonly %}
+<div class="alert alert-info text-center mt-4" role="alert">
+    You are viewing this dashboard in <strong>read-only mode</strong> as a Project Manager.
+</div>
+{% endif %}
+
+<!-- ✅ Lifetime Metric Cards -->
+<div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 30px; margin: 40px 0;">
+    <div style="background: #e6f2ff; padding: 30px 20px; border-radius: 10px; width: 280px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h3>Total Outreach Leads</h3>
+        <p style="font-size: 36px; font-weight: bold; color: #007bff;">{{ total_leads }}</p>
+    </div>
+    <div style="background: #e6ffe6; padding: 30px 20px; border-radius: 10px; width: 280px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h3>Total Connections</h3>
+        <p style="font-size: 36px; font-weight: bold; color: #28a745;">{{ total_connections }}</p>
+    </div>
+</div>
+
+<!-- ✅ Quick Actions -->
+{% if not readonly %}
+<div style="display: flex; justify-content: center; gap: 25px; margin-bottom: 40px;">
+    <a href="{% url 'add_lead' %}" style="padding: 12px 25px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">➕ Add New Lead</a>
+    <a href="{% url 'outreach_lead_list' %}" style="padding: 12px 25px; background-color: #17a2b8; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">📋 View Leads</a>
+    <a href="{% url 'connection_list' %}" style="padding: 12px 25px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">🔗 View Connections</a>
+</div>
+{% endif %}
+
+<!-- 📊 Link to Analytics Page -->
+<div style="text-align: center; margin-top: 30px;">
+    <a href="{% url 'view_analytics' %}" style="font-weight: bold; text-decoration: underline; color: #004080;">
+        📈 View Detailed Analytics
+    </a>
+</div>
+{% endblock %}

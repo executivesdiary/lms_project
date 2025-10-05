@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- ✅ SweetAlert2 CSS & JS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<!-- ✅ Add this in base_dashboard.html -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <meta charset="UTF-8">
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6f8;
+        }
+
+        header {
+            background-color: #004080;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .logout-btn {
+            background-color: #e60000;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<!-- ✅ Navbar with Welcome & Navigation -->
+<nav style="background-color: #343a40; padding: 10px 20px; color: white;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        
+        <!-- 👤 Left side: Welcome User -->
+        <div>
+            {% if user.is_authenticated %}
+                <span style="font-weight: bold;">
+                    Welcome, 
+                    {% if user.userprofile.full_name %}
+                        {{ user.userprofile.full_name }}
+                    {% else %}
+                        {{ user.username }}
+                    {% endif %}
+                </span>
+                | <a href="#" style="color: #ffc107; text-decoration: none;">Edit Profile</a>
+            {% endif %}
+        </div>
+
+        <!-- 🧭 Right side: Navigation -->
+        <div style="display: flex; gap: 20px;">
+            {% if user.is_authenticated %}
+                {% if user.role == 'community_builder' %}
+                    <a href="{% url 'builder_dashboard' %}" style="color: white; text-decoration: none;">Dashboard</a>
+                    <a href="{% url 'add_lead' %}" style="color: white; text-decoration: none;">Add Lead</a>
+                    <a href="{% url 'outreach_lead_list' %}" style="color: white; text-decoration: none;">Outreach Leads</a>
+                    <a href="{% url 'connection_list' %}" style="color: white; text-decoration: none;">Connections</a>
+                    <a href="{% url 'uploaded_connections_page' %}" style="color: white; text-decoration: none;">Uploaded Connections</a>
+                    
+                    {% endif %}
+                <!-- Add more roles if needed -->
+                <a href="{% url 'logout' %}" style="color: #ffc107; text-decoration: none;">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}" style="color: white; text-decoration: none;">Login</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+    <header>
+        <div class="header-title">
+            <h1 style="margin: 0;">Lead Management System (LMS)</h1>
+            <p style="margin: 0;">By Executives Diary Inc.</p>
+        </div>
+        <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">Logout</button>
+        </form>
+    </header>
+
+    <main>
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,112 @@
+{% extends 'lead_management/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}View Connection{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow-lg border-0">
+        <div class="card-body">
+            <!-- ✅ Comments Section -->
+            <h5 class="fw-bold mb-3">💬 Comments</h5>
+            <div id="comments-thread">
+                {% if comments %}
+                    {% for comment in comments %}
+                        <div class="border rounded p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong>
+                                    {{ comment.author.get_full_name|default:comment.author.username }}
+                                    {% if comment.author.role == 'project_manager' %}<span class="badge bg-info text-dark ms-1">PM</span>{% endif %}
+                                    {% if comment.author.role == 'community_builder' %}<span class="badge bg-success text-white ms-1">Builder</span>{% endif %}
+                                    {% if comment.author.role == 'editor' %}<span class="badge bg-secondary text-white ms-1">Editor</span>{% endif %}
+                                </strong>
+                                <small class="text-muted">{{ comment.timestamp|date:"M d, Y h:i A" }}</small>
+                            </div>
+                            <div class="mb-2">{{ comment.comment }}</div>
+                            <button class="btn btn-sm btn-outline-secondary reply-btn" data-id="{{ comment.id }}">Reply</button>
+
+                            {% if comment.thread_replies %}
+                                {% for reply in comment.thread_replies %}
+                                    <div class="border rounded p-3 my-2 ms-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <strong>
+                                                {{ reply.author.get_full_name|default:reply.author.username }}
+                                                {% if reply.author.role == 'project_manager' %}<span class="badge bg-info text-dark ms-1">PM</span>{% endif %}
+                                                {% if reply.author.role == 'community_builder' %}<span class="badge bg-success text-white ms-1">Builder</span>{% endif %}
+                                                {% if reply.author.role == 'editor' %}<span class="badge bg-secondary text-white ms-1">Editor</span>{% endif %}
+                                            </strong>
+                                            <small class="text-muted">{{ reply.timestamp|date:"M d, Y h:i A" }}</small>
+                                        </div>
+                                        <div class="mb-2">{{ reply.comment }}</div>
+                                        <button class="btn btn-sm btn-outline-secondary reply-btn" data-id="{{ reply.id }}">Reply</button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No comments yet. Be the first to share an update.</p>
+                {% endif %}
+            </div>
+
+            <!-- ✅ Add Comment Form -->
+            <div id="reply-form-container" class="mt-4">
+                <h6 class="fw-semibold">Add a Comment</h6>
+                <form id="reply-form" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="parent_id" id="parent-id">
+                    <textarea id="comment" name="comment" class="form-control mb-2" placeholder="Write your comment..." required></textarea>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-primary">Post Comment</button>
+                        <button type="button" class="btn btn-sm btn-secondary d-none" id="cancel-reply" onclick="cancelReply()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ Scripts -->
+<script>
+    document.getElementById('reply-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const form = this;
+        const data = new FormData(form);
+        const url = "{{ comment_post_url }}";
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': data.get('csrfmiddlewaretoken')
+            },
+            body: data
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert("Failed to post comment.");
+            }
+        })
+        .catch(() => alert("Error posting comment."));
+    });
+
+    function cancelReply() {
+        document.getElementById('parent-id').value = "";
+        document.getElementById('cancel-reply').classList.add('d-none');
+        document.querySelector('.container').appendChild(document.getElementById('reply-form-container'));
+        document.getElementById('reply-form').reset();
+        document.getElementById('comment').value = "";
+    }
+
+    document.querySelectorAll('.reply-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const parentId = btn.dataset.id;
+            document.getElementById('parent-id').value = parentId;
+            document.getElementById('cancel-reply').classList.remove('d-none');
+            btn.closest('.border').appendChild(document.getElementById('reply-form-container'));
+        });
+    });
+</script>
+{% endblock %}

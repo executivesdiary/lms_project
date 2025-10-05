@@ -1,0 +1,79 @@
+{% extends 'lead_management/base_dashboard.html' %}
+
+{% block title %}Outreach Leads{% endblock %}
+
+{% block content %}
+<h2>My Outreach Leads</h2>
+
+<!-- 🔍 Search box -->
+<input type="text" id="search-box" placeholder="Search by name or location"
+       style="margin-bottom: 20px; padding: 8px; width: 100%; max-width: 400px;">
+
+<!-- 📊 Lead Table -->
+<table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background-color: #f0f0f0;">
+            <th style="padding: 10px;">LinkedIn URL</th>
+            <th style="padding: 10px;">Full Name</th>
+            <th style="padding: 10px;">Location</th>
+            <th style="padding: 10px;">Date Added</th>
+            <th style="padding: 10px;">Action</th>
+        </tr>
+    </thead>
+    <tbody id="lead-table">
+        {% for lead in leads %}
+        <tr>
+            <td style="padding: 10px;"><a href="{{ lead.linkedin_url }}" target="_blank">{{ lead.linkedin_url }}</a></td>
+            <td style="padding: 10px;">{{ lead.full_name }}</td>
+            <td style="padding: 10px;">{{ lead.location }}</td>
+            <td style="padding: 10px;">{{ lead.date_added|date:"M d, Y" }}</td>
+            <td style="padding: 10px;">
+                {% if not lead.connection %}
+                <a href="{% url 'add_connection' lead.id %}" class="btn-convert">
+                    ➕ Convert to Connection
+                </a>
+                {% else %}
+                <span style="color: #6c757d;">Already Connected</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="padding: 10px; text-align: center;">No leads found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- 🔁 Real-time filtering -->
+<script>
+    document.getElementById('search-box').addEventListener('keyup', function () {
+        const query = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#lead-table tr');
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+</script>
+
+<!-- ✅ Custom CSS for Button -->
+<style>
+    .btn-convert {
+        display: inline-block;
+        background-color: #28a745;
+        color: white;
+        padding: 8px 16px;
+        font-size: 14px;
+        border: none;
+        border-radius: 5px;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: background 0.3s ease;
+    }
+    .btn-convert:hover {
+        background-color: #218838;
+    }
+</style>
+{% endblock %}

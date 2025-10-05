@@ -1,0 +1,12 @@
+# env / secrets
+.env
+env
+
+# bytecode & cache
+__pycache__/
+*.pyc
+
+# django artifacts
+*.sqlite3
+/staticfiles/
+/media/

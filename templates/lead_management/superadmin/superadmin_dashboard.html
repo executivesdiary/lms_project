@@ -1,0 +1,8 @@
+{% extends 'lead_management/base_dashboard.html' %}
+
+{% block title %}Super Admin Dashboard{% endblock %}
+
+{% block content %}
+    <h2>Welcome {{ request.user.username }}, you are a Super Admin</h2>
+    <p>This is your dashboard. You can manage all users and data.</p>
+{% endblock %}

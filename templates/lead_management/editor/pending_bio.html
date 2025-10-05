@@ -1,0 +1,64 @@
+<!-- 
+    Template: pending_bio.html
+    Purpose: Lists all connections assigned to the editor with no drafts.
+    Styled like community_builder/connection_list.html
+-->
+
+{% extends 'lead_management/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Pending Biographies{% endblock %}
+
+{% block content %}
+<h2 class="text-center mb-4">🕒 Pending Biographies</h2>
+
+<div class="text-center mb-3">
+    <input type="text" id="search-box" placeholder="Search by name or PM"
+        class="form-control" style="max-width: 400px; margin: 0 auto;">
+</div>
+
+<table class="table table-bordered table-hover bg-white shadow-sm rounded">
+    <thead class="table-primary">
+        <tr>
+            <th>Full Name</th>
+            <th>Connection of</th>
+            <th>Assigned by (PM)</th>
+            <th class="text-center">Actions</th>
+        </tr>
+    </thead>
+    <tbody id="pending-table">
+        {% for connection in pending_connections %}
+        <tr>
+            <td>{{ connection.full_name }}</td>
+            <td>{{ connection.added_by.get_full_name|default:connection.added_by.username }}</td>
+            <td>
+                {% if connection.added_by.userprofile.project_manager %}
+                    {{ connection.added_by.userprofile.project_manager.get_full_name|default:connection.added_by.userprofile.project_manager.username }}
+                {% else %}
+                    <span class="text-muted">—</span>
+                {% endif %}
+            </td>
+            <td class="text-center">
+                <a href="{% url 'editor_view_connection' connection.id %}" class="me-2 text-decoration-none" title="View">👁️</a>
+                <a href="{% url 'generate_biography' connection.id %}" class="text-decoration-none" title="Generate Bio">✍️</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" class="text-center py-4">No pending biographies assigned.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    document.getElementById('search-box').addEventListener('keyup', function () {
+        const query = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#pending-table tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

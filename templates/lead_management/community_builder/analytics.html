@@ -1,0 +1,136 @@
+{% extends 'lead_management/base_dashboard.html' %}
+
+{% block title %}Connection Analytics{% endblock %}
+
+{% block content %}
+<h2 style="text-align:center;">Connection Analytics</h2>
+
+<!-- ✅ Two Pie Charts Side-by-Side -->
+<div style="display: flex; justify-content: center; gap: 50px; margin: 40px 0; flex-wrap: wrap;">
+    <div style="text-align: center;">
+        <h4>Connection Status</h4>
+        <canvas id="statusPieChart" width="350" height="350"></canvas>
+    </div>
+    <div style="text-align: center;">
+        <h4>Conversion Rate (Donut)</h4>
+        <canvas id="conversionPieChart" width="350" height="350"></canvas>
+    </div>
+</div>
+
+<!-- 📄 Filtered Connection Results -->
+<div id="status-results" style="margin-top: 40px;">
+    <h3 id="status-title" style="text-align: center;"></h3>
+    <table id="results-table" style="width: 100%; display: none; border-collapse: collapse; margin-top: 20px;">
+        <thead>
+            <tr style="background-color: #f0f0f0;">
+                <th style="padding: 10px;">Full Name</th>
+                <th style="padding: 10px;">LinkedIn Email</th>
+                <th style="padding: 10px;">Outreach Email</th>
+                <th style="padding: 10px;">Status</th>
+                <th style="padding: 10px;">Date Connected</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- ✅ Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const chartData = {{ chart_data|safe }};
+    const totalLeads = {{ total_leads }};
+    const totalConnections = {{ total_connections }};
+    const remaining = totalLeads - totalConnections;
+
+    function formatTooltip(context) {
+        const chart = context.chart;
+        const dataset = chart.data.datasets[0];
+        const total = dataset.data.reduce((a, b) => a + b, 0);
+        const value = context.raw;
+        const percentage = ((value / total) * 100).toFixed(1);
+        return `${context.label}: ${value} (${percentage}%)`;
+    }
+
+    // ✅ Connection Status Pie Chart
+    const statusCtx = document.getElementById('statusPieChart').getContext('2d');
+    const statusPieChart = new Chart(statusCtx, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(chartData),
+            datasets: [{
+                label: 'Connections by Status',
+                data: Object.values(chartData),
+                backgroundColor: Object.keys(chartData).map(status => {
+                    return {
+                        'interested': '#28a745',
+                        'not_interested': '#dc3545',
+                        'F1': '#ffc107',
+                        'F2': '#fd7e14',
+                        'cold_lead': '#17a2b8',
+                        'connected': '#6c757d'
+                    }[status] || '#007bff';
+                }),
+                borderColor: '#ffffff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: { label: formatTooltip } }
+            },
+            onClick: (e, elements) => {
+                if (elements.length > 0) {
+                    const index = elements[0].index;
+                    const selectedStatus = statusPieChart.data.labels[index];
+                    fetch(`/analytics/filter/${selectedStatus}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const table = document.getElementById('results-table');
+                            const tbody = table.querySelector('tbody');
+                            const title = document.getElementById('status-title');
+                            tbody.innerHTML = '';
+                            title.textContent = `Connections with Status: ${selectedStatus}`;
+                            data.forEach(row => {
+                                tbody.innerHTML += `
+                                    <tr>
+                                        <td style="padding: 10px;">${row.full_name}</td>
+                                        <td style="padding: 10px;">${row.linkedin_email || '—'}</td>
+                                        <td style="padding: 10px;">${row.outreach_email || '—'}</td>
+                                        <td style="padding: 10px;">${row.status}</td>
+                                        <td style="padding: 10px;">${new Date(row.date_connected).toLocaleDateString()}</td>
+                                    </tr>
+                                `;
+                            });
+                            table.style.display = 'table';
+                        });
+                }
+            }
+        }
+    });
+
+    // ✅ Conversion Donut Chart
+    const conversionCtx = document.getElementById('conversionPieChart').getContext('2d');
+    new Chart(conversionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Connections Made', 'Pending Outreach'],
+            datasets: [{
+                label: 'Conversion Rate',
+                data: [totalConnections, remaining >= 0 ? remaining : 0],
+                backgroundColor: ['#28a745', '#dee2e6'],
+                borderColor: '#ffffff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: { label: formatTooltip } }
+            }
+        }
+    });
+</script>
+{% endblock %}

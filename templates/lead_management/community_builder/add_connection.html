@@ -1,0 +1,30 @@
+{% extends 'lead_management/base_dashboard.html' %}
+
+{% block title %}Add Connection{% endblock %}
+
+{% block content %}
+<h2>Add Connection</h2>
+
+<!-- Show LinkedIn URL for reference -->
+<p><strong>LinkedIn URL:</strong> <a href="{{ outreach_lead.linkedin_url }}" target="_blank">{{ outreach_lead.linkedin_url }}</a></p>
+
+<form method="POST" enctype="multipart/form-data" style="margin-top: 20px;">
+    {% csrf_token %}
+    
+    <div style="display: flex; flex-direction: column; gap: 15px; max-width: 600px;">
+        {{ form.full_name.label_tag }} {{ form.full_name }}
+        {{ form.location.label_tag }} {{ form.location }}
+        {{ form.linkedin_email.label_tag }} {{ form.linkedin_email }}
+        {{ form.outreach_email.label_tag }} {{ form.outreach_email }}
+        {{ form.profile_pdf.label_tag }} {{ form.profile_pdf }}
+        {{ form.profile_picture.label_tag }} {{ form.profile_picture }}
+    </div>
+
+    <button type="submit" style="margin-top: 20px; padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px;">
+        Save Connection
+    </button>
+</form>
+
+<a href="{% url 'outreach_lead_list' %}" style="display: inline-block; margin-top: 20px; text-decoration: none; color: #007bff;">← Back to Leads</a>
+
+{% endblock %}

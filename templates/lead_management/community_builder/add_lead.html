@@ -1,0 +1,57 @@
+{% extends 'lead_management/base_dashboard.html' %}
+
+{% block title %}Add New Lead{% endblock %}
+
+{% block content %}
+<h2>Add New Lead</h2>
+
+<form id="lead-form" method="POST" novalidate>
+    {% csrf_token %}
+    <div id="url-section">
+        {{ form.linkedin_url.label_tag }}
+        {{ form.linkedin_url }}
+        <button type="button" id="check-url" style="margin-top: 10px;">Check URL</button>
+        <div id="url-status" style="margin-top: 10px; font-weight: bold;"></div>
+    </div>
+
+    <div id="details-section" style="margin-top: 30px; display: none;">
+        {{ form.full_name.label_tag }}
+        {{ form.full_name }}
+
+        {{ form.location.label_tag }}
+        {{ form.location }}
+
+        <button type="submit" style="margin-top: 20px;">Add Lead</button>
+    </div>
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $('#check-url').on('click', function () {
+        const linkedinUrl = $('#id_linkedin_url').val();
+        const statusEl = $('#url-status');
+
+        if (!linkedinUrl) {
+            statusEl.text('Please enter a LinkedIn URL.').css('color', 'red');
+            return;
+        }
+
+        $.ajax({
+            url: "{% url 'check_linkedin_url' %}",
+            data: {
+                'linkedin_url': linkedinUrl
+            },
+            dataType: 'json',
+            success: function (data) {
+                if (data.exists) {
+                    statusEl.text('This LinkedIn URL is already in the system.').css('color', 'red');
+                    $('#details-section').hide();
+                } else {
+                    statusEl.text('URL is available — you can proceed.').css('color', 'green');
+                    $('#details-section').show();
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

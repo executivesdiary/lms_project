@@ -1,0 +1,77 @@
+
+{% extends 'lead_management/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Executive Biographer Dashboard{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">📋 Executive Biographer Dashboard</h2>
+
+    <!-- 🔍 Filter and Search -->
+    <form method="get" class="row g-3 align-items-center mb-4">
+        <div class="col-auto">
+            <label for="status" class="col-form-label">Filter by Status:</label>
+        </div>
+        <div class="col-auto">
+            <select name="status" id="status" class="form-select" onchange="this.form.submit()">
+                <option value="">All</option>
+                <option value="Not Started" {% if request.GET.status == 'Not Started' %}selected{% endif %}>Not Started</option>
+                <option value="Drafted" {% if request.GET.status == 'Drafted' %}selected{% endif %}>Drafted</option>
+                <option value="Finalized" {% if request.GET.status == 'Finalized' %}selected{% endif %}>Finalized</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <input type="text" name="search" class="form-control" placeholder="Search by name or location" value="{{ request.GET.search }}">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-outline-primary">Search</button>
+        </div>
+    </form>
+
+    {% if connections %}
+        <table class="table table-hover table-bordered shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Last Updated</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conn in connections %}
+                    <tr>
+                        <td>{{ conn.name }}</td>
+                        <td>{{ conn.location }}</td>
+                        <td>
+                            {% if conn.status == "Finalized" %}
+                                <span class="badge bg-success">{{ conn.status }}</span>
+                            {% elif conn.status == "Drafted" %}
+                                <span class="badge bg-warning text-dark">{{ conn.status }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ conn.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if conn.last_updated %}
+                                {{ conn.last_updated|date:"M d, Y H:i" }}
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'generate_biography' conn.id %}" class="btn btn-sm btn-primary">
+                                ✍️ Write Biography
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info">No connections found.</div>
+    {% endif %}
+</div>
+{% endblock %}

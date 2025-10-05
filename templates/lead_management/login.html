@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login | LMS by Executives Diary</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f6f8; display: flex; justify-content: center; align-items: center; height: 100vh;">
+
+    <div style="background: white; padding: 40px 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px;">
+
+        <h2 style="text-align: center; color: #1a1a1a; margin-bottom: 10px;">Lead Management System</h2>
+        <p style="text-align: center; color: #555; margin-top: 0;">By Executives Diary Inc.</p>
+
+        <form method="POST" style="margin-top: 30px;">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <button type="submit" style="width: 100%; background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
+                Login
+            </button>
+        </form>
+    </div>
+
+</body>
+</html>
